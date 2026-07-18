@@ -199,5 +199,5 @@ No.
 MIT — see [LICENSE](LICENSE).
 
 <div align="center">
-<sub>© 2026 VoltBase Inc.</sub>
+<sub>© 2026 VoltBase.</sub>
 </div>
