@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VoltBase — The Zero-Spinner, Local-First Alternative</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  // Class strategy is what makes every `dark:` prefix below respond to the toggle.
+  tailwind.config = { darkMode: 'class' };
+</script>
+<style>
+  html { color-scheme: dark; }
+  html:not(.dark) { color-scheme: light; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+  @keyframes pulsebar { 0%,100% { opacity: .35 } 50% { opacity: 1 } }
+  .pulsing { animation: pulsebar 900ms ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) {
+    .pulsing { animation: none; opacity: .8 }
+    * { transition-duration: .01ms !important }
+  }
+  .rows::-webkit-scrollbar { width: 6px }
+  .rows::-webkit-scrollbar-thumb { background: #2e2e2e; border-radius: 3px }
+  html:not(.dark) .rows::-webkit-scrollbar-thumb { background: #e1e1e3 }
+</style>
+</head>
+
+<body class="min-h-screen bg-[#fcfcfc] dark:bg-[#171717] text-[#171717] dark:text-[#fafafa] antialiased transition-colors duration-200">
+
+<!-- ============ NAV ============ -->
+<header class="sticky top-0 z-50 border-b border-[#e1e1e3] dark:border-[#2e2e2e] bg-[#fcfcfc]/90 dark:bg-[#171717]/90 backdrop-blur-md">
+  <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
+    <a href="#" class="flex items-center gap-2.5">
+      <span class="grid h-7 w-7 place-items-center border border-[#00a8cc] dark:border-[#00f2fe] text-[#00a8cc] dark:text-[#00f2fe] text-sm font-bold">V</span>
+      <span class="text-[15px] font-semibold tracking-tight">Volt<span class="text-[#00a8cc] dark:text-[#00f2fe]">Base</span></span>
+    </a>
+
+    <nav class="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 md:flex">
+      <a href="#" class="text-[13.5px] text-[#707070] dark:text-[#b4b4b4] transition-colors hover:text-[#171717] dark:hover:text-[#fafafa]">GitHub</a>
+      <a href="#" class="text-[13.5px] text-[#707070] dark:text-[#b4b4b4] transition-colors hover:text-[#171717] dark:hover:text-[#fafafa]">Docs</a>
+    </nav>
+
+    <div class="flex items-center gap-2.5">
+      <button id="themeToggle" aria-label="Switch theme"
+        class="grid h-9 w-9 place-items-center rounded-full border border-[#e1e1e3] dark:border-[#2e2e2e] bg-white dark:bg-[#1c1c1e] text-sm transition-colors hover:bg-[#f2f2f4] dark:hover:bg-[#232326] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00a8cc] dark:focus-visible:ring-[#00f2fe]">
+        <span id="themeIcon">☀️</span>
+      </button>
+      <button class="rounded-full bg-[#00a8cc] dark:bg-[#00f2fe] text-white dark:text-[#0a0a0a] px-4 py-[7px] text-[13px] font-semibold transition-opacity hover:opacity-85 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00a8cc] dark:focus-visible:ring-[#00f2fe]">
+        Sign up
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- ============ HERO ============ -->
+<section class="mx-auto max-w-6xl px-5 pb-14 pt-20 md:pt-28">
+  <div class="inline-flex items-center gap-2 rounded-full border border-[#e1e1e3] dark:border-[#2e2e2e] bg-white dark:bg-[#1c1c1e] px-3 py-1 text-[11.5px] text-[#707070] dark:text-[#b4b4b4]">
+    <span class="h-1.5 w-1.5 rounded-full bg-[#00a8cc] dark:bg-[#00f2fe]"></span>
+    Open source · Apache 2.0 · v0.9 beta
+  </div>
+
+  <h1 class="mt-6 max-w-3xl text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl md:text-6xl">
+    The Zero-Spinner, <span class="text-[#00a8cc] dark:text-[#00f2fe]">Local-First</span> Alternative.
+  </h1>
+
+  <p class="mt-6 max-w-2xl text-[15px] leading-relaxed text-[#707070] dark:text-[#b4b4b4] md:text-base">
+    Stop managing loading states. VoltBase embeds an ACID-compliant SQLite engine backed by OPFS
+    directly in your client, keeping it perfectly synchronized with your cloud database in the background.
+  </p>
+
+  <div class="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+    <button id="copyBtn"
+      class="flex w-full items-center justify-between gap-4 rounded-md border border-[#e1e1e3] dark:border-[#2e2e2e] bg-[#f6f6f7] dark:bg-[#121212] px-4 py-3 text-left mono text-[13.5px] transition-colors hover:bg-[#f2f2f4] dark:hover:bg-[#1c1c1e] sm:w-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00a8cc] dark:focus-visible:ring-[#00f2fe]">
+      <span><span class="text-[#707070] dark:text-[#b4b4b4]">$</span> npm i @voltbase/sdk</span>
+      <span id="copyLabel" class="text-[11px] uppercase tracking-wider text-[#707070] dark:text-[#b4b4b4]" style="font-family:inherit">Copy</span>
+    </button>
+
+    <a href="#sandbox"
+      class="w-full rounded-md border border-[#e1e1e3] dark:border-[#2e2e2e] bg-white dark:bg-[#1c1c1e] px-5 py-3 text-center text-[13.5px] font-medium transition-colors hover:bg-[#f2f2f4] dark:hover:bg-[#232326] sm:w-auto">
+      Try the sync sandbox
+    </a>
+  </div>
+
+  <p class="mt-4 text-[12.5px] text-[#707070] dark:text-[#b4b4b4]">
+    Works with your existing Postgres. No rewrite, no proprietary runtime.
+  </p>
+</section>
+
+<!-- ============ SYNC SANDBOX ============ -->
+<section id="sandbox" class="mx-auto max-w-6xl px-5 py-16">
+  <div class="mb-8 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="text-[11.5px] uppercase tracking-[0.16em] text-[#707070] dark:text-[#b4b4b4]">Sync sandbox</p>
+      <h2 class="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">Cut the network. Keep writing.</h2>
+    </div>
+    <p class="max-w-sm text-[13.5px] leading-relaxed text-[#707070] dark:text-[#b4b4b4]">
+      Flip airplane mode and add a row. The write commits locally, then reconciles when the connection returns.
+    </p>
+  </div>
+
+  <div class="grid overflow-hidden rounded-lg border border-[#e1e1e3] dark:border-[#2e2e2e] bg-white dark:bg-[#1c1c1e] lg:grid-cols-[1.15fr_1fr]">
+
+    <!-- Editor -->
+    <div class="border-b border-[#e1e1e3] dark:border-[#2e2e2e] lg:border-b-0 lg:border-r">
+      <div class="flex items-center gap-2 border-b border-[#e1e1e3] dark:border-[#2e2e2e] px-4 py-2.5">
+        <span class="h-2 w-2 rounded-full bg-[#d8d8dc] dark:bg-[#3a3a3a]"></span>
+        <span class="h-2 w-2 rounded-full bg-[#d8d8dc] dark:bg-[#3a3a3a]"></span>
+        <span class="h-2 w-2 rounded-full bg-[#d8d8dc] dark:bg-[#3a3a3a]"></span>
+        <span class="ml-2 mono text-[11.5px] text-[#707070] dark:text-[#b4b4b4]">voltbase.config.ts</span>
+      </div>
+      <pre class="mono overflow-x-auto bg-[#f6f6f7] dark:bg-[#121212] px-4 py-5 text-[12.5px] leading-[1.75]"><code id="codeBlock"></code></pre>
+    </div>
+
+    <!-- Device -->
+    <div class="p-5 sm:p-7">
+      <div class="mb-5 flex items-center justify-between gap-4">
+        <div>
+          <p class="text-[13.5px] font-medium">Airplane mode</p>
+          <p class="text-[12px] text-[#707070] dark:text-[#b4b4b4]">[ <span id="modeLabel">OFF</span> ]</p>
+        </div>
+        <button id="airplaneToggle" role="switch" aria-checked="false" aria-label="Toggle airplane mode"
+          class="relative h-6 w-11 shrink-0 rounded-full border border-[#e1e1e3] dark:border-[#2e2e2e] bg-[#f6f6f7] dark:bg-[#121212] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00a8cc] dark:focus-visible:ring-[#00f2fe]">
+          <span id="knob" class="absolute left-[3px] top-[3px] h-4 w-4 rounded-full bg-[#a0a0a4] dark:bg-[#6a6a6a] transition-all duration-200"></span>
+        </button>
+      </div>
+
+      <!-- Phone frame -->
+      <div class="mx-auto w-full max-w-[300px] rounded-[26px] border border-[#e1e1e3] dark:border-[#2e2e2e] bg-[#f6f6f7] dark:bg-[#121212] p-2.5">
+        <div class="overflow-hidden rounded-[18px] border border-[#e1e1e3] dark:border-[#2e2e2e] bg-white dark:bg-[#1c1c1e]">
+
+          <div class="border-b border-[#e1e1e3] dark:border-[#2e2e2e] px-3.5 py-2.5">
+            <div id="statusBar" class="flex items-center gap-2 mono text-[10.5px]"></div>
+          </div>
+
+          <div class="flex gap-2 border-b border-[#e1e1e3] dark:border-[#2e2e2e] p-3">
+            <input id="taskInput" placeholder="Add a task…"
+              class="min-w-0 flex-1 rounded-md border border-[#e1e1e3] dark:border-[#2e2e2e] bg-[#f6f6f7] dark:bg-[#121212] px-2.5 py-1.5 text-[12.5px] outline-none placeholder:text-[#a8a8ac] dark:placeholder:text-[#5e5e5e] focus-visible:ring-2 focus-visible:ring-[#00a8cc] dark:focus-visible:ring-[#00f2fe]" />
+            <button id="addBtn"
+              class="rounded-md bg-[#00a8cc] dark:bg-[#00f2fe] text-white dark:text-[#0a0a0a] px-3 text-[12.5px] font-semibold transition-opacity hover:opacity-85 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00a8cc] dark:focus-visible:ring-[#00f2fe]">Add</button>
+          </div>
+
+          <ul id="rowList" class="rows max-h-[210px] divide-y divide-[#e1e1e3] dark:divide-[#2e2e2e] overflow-y-auto"></ul>
+        </div>
+      </div>
+
+      <p id="deviceNote" class="mt-4 text-center text-[11.5px] text-[#707070] dark:text-[#b4b4b4]"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MATRIX ============ -->
+<section class="mx-auto max-w-6xl px-5 py-16">
+  <p class="text-[11.5px] uppercase tracking-[0.16em] text-[#707070] dark:text-[#b4b4b4]">Structural matrix</p>
+  <h2 class="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">Where the architectures diverge</h2>
+
+  <div class="mt-8 overflow-hidden rounded-lg border border-[#e1e1e3] dark:border-[#2e2e2e] bg-white dark:bg-[#1c1c1e]">
+    <div class="hidden border-b border-[#e1e1e3] dark:border-[#2e2e2e] md:grid md:grid-cols-[1fr_1.3fr_1.3fr]">
+      <div class="px-5 py-3 text-[11.5px] uppercase tracking-wider text-[#707070] dark:text-[#b4b4b4]">Axis</div>
+      <div class="border-l border-[#e1e1e3] dark:border-[#2e2e2e] px-5 py-3 text-[12.5px] font-medium">Supabase</div>
+      <div class="border-l border-[#e1e1e3] dark:border-[#2e2e2e] px-5 py-3 text-[12.5px] font-medium">Volt<span class="text-[#00a8cc] dark:text-[#00f2fe]">Base</span></div>
+    </div>
+    <div id="matrixBody" class="divide-y divide-[#e1e1e3] dark:divide-[#2e2e2e]"></div>
+  </div>
+
+  <p class="mt-3 text-[12px] text-[#707070] dark:text-[#b4b4b4]">
+    Latency figures measured on a 4G profile against a single-region Postgres instance.
+  </p>
+</section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="mt-8 border-t border-[#e1e1e3] dark:border-[#2e2e2e]">
+  <div class="mx-auto max-w-6xl px-5 py-14">
+    <div class="grid grid-cols-2 gap-10 sm:grid-cols-4 lg:grid-cols-5">
+      <div class="col-span-2 sm:col-span-4 lg:col-span-1">
+        <div class="flex items-center gap-2.5">
+          <span class="grid h-7 w-7 place-items-center border border-[#00a8cc] dark:border-[#00f2fe] text-[#00a8cc] dark:text-[#00f2fe] text-sm font-bold">V</span>
+          <span class="text-[15px] font-semibold tracking-tight">Volt<span class="text-[#00a8cc] dark:text-[#00f2fe]">Base</span></span>
+        </div>
+        <p class="mt-4 max-w-xs text-[12.5px] leading-relaxed text-[#707070] dark:text-[#b4b4b4]">
+          A local-first backend for teams who refuse to ship a spinner.
+        </p>
+      </div>
+      <div id="footerCols" class="contents"></div>
+    </div>
+
+    <div class="mt-12 flex flex-col gap-3 border-t border-[#e1e1e3] dark:border-[#2e2e2e] pt-6 sm:flex-row sm:items-center sm:justify-between">
+      <p class="text-[12px] text-[#707070] dark:text-[#b4b4b4]">© 2026 VoltBase.</p>
+      <p class="mono text-[11.5px] text-[#707070] dark:text-[#b4b4b4]">All systems operational <span class="text-[#3ecf8e]">●</span></p>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ---------- theme ---------- */
+const root = document.documentElement;
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const dark = root.classList.toggle('dark');
+  document.getElementById('themeIcon').textContent = dark ? '☀️' : '🌙';
+});
+
+/* ---------- click to copy ---------- */
+const copyLabel = document.getElementById('copyLabel');
+let copyTimer;
+document.getElementById('copyBtn').addEventListener('click', () => {
+  navigator.clipboard?.writeText('npm i @voltbase/sdk').catch(() => {});
+  copyLabel.textContent = 'Copied';
+  copyLabel.classList.add('text-[#00a8cc]', 'dark:text-[#00f2fe]');
+  clearTimeout(copyTimer);
+  copyTimer = setTimeout(() => {
+    copyLabel.textContent = 'Copy';
+    copyLabel.classList.remove('text-[#00a8cc]', 'dark:text-[#00f2fe]');
+  }, 1600);
+});
+
+/* ---------- syntax-highlighted snippet ---------- */
+const C = {
+  kw:'text-[#7c3aed] dark:text-[#c792ea]',
+  fn:'text-[#00a8cc] dark:text-[#00f2fe]',
+  str:'text-[#0f7b3f] dark:text-[#a5d6a7]',
+  cm:'text-[#9a9a9a] dark:text-[#6b6b6b] italic',
+  prop:'text-[#a35c00] dark:text-[#ffcb6b]',
+  pl:'text-[#3a3a3a] dark:text-[#d4d4d4]'
+};
+const SNIPPET = [
+  [['cm','// voltbase.config.ts — runs before first paint']],
+  [['kw','import'],['pl',' { createClient } '],['kw','from'],['str'," '@voltbase/sdk'"]],
+  [],
+  [['kw','const'],['pl',' db = '],['fn','createClient'],['pl','({']],
+  [['prop','  engine'],['pl',': '],['str',"'sqlite-wasm'"],['pl',',']],
+  [['prop','  storage'],['pl',': '],['str',"'opfs'"],['pl',','],['cm','     // durable, origin-private']],
+  [['prop','  sync'],['pl',': { mode: '],['str',"'background'"],['pl',', resolve: '],['str',"'crdt'"],['pl',' },']],
+  [['pl','})']],
+  [],
+  [['cm','// Reads resolve locally. No await, no spinner.']],
+  [['kw','const'],['pl',' { rows } = db.'],['fn','useQuery'],['pl','('],['str',"'select * from tasks'"],['pl',')']]
+];
+document.getElementById('codeBlock').innerHTML = SNIPPET.map((line, i) => {
+  const body = line.length
+    ? line.map(([k, txt]) => `<span class="${C[k]}">${txt.replace(/</g,'&lt;')}</span>`).join('')
+    : '&nbsp;';
+  return `<div class="flex"><span class="mr-4 w-5 shrink-0 select-none text-right text-[#c4c4c8] dark:text-[#4a4a4a]">${i+1}</span><span class="whitespace-pre">${body}</span></div>`;
+}).join('');
+
+/* ---------- sync sandbox ---------- */
+const state = {
+  offline: false,
+  syncing: false,
+  rows: [
+    { id: 1, label: 'Ship OPFS adapter', pending: false },
+    { id: 2, label: 'Benchmark cold start', pending: false }
+  ],
+  nextId: 3
+};
+
+const statusBar = document.getElementById('statusBar');
+const rowList   = document.getElementById('rowList');
+const modeLabel = document.getElementById('modeLabel');
+const knob      = document.getElementById('knob');
+const airplane  = document.getElementById('airplaneToggle');
+const note      = document.getElementById('deviceNote');
+const input     = document.getElementById('taskInput');
+
+function renderStatus() {
+  const queued = state.rows.filter(r => r.pending).length;
+  if (state.syncing) {
+    statusBar.className = 'flex items-center gap-2 mono text-[10.5px] text-[#00a8cc] dark:text-[#00f2fe] pulsing';
+    statusBar.innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-[#00a8cc] dark:bg-[#00f2fe]"></span>SYNCING ${queued} QUEUED WRITE${queued === 1 ? '' : 'S'}…`;
+  } else if (state.offline) {
+    statusBar.className = 'flex items-center gap-2 mono text-[10.5px] text-[#b07800] dark:text-[#e0a800]';
+    statusBar.innerHTML = '<span class="h-1.5 w-1.5 rounded-full bg-[#b07800] dark:bg-[#e0a800]"></span>⚡ OFFLINE MODE | QUEUE ACTIVE';
+  } else {
+    statusBar.className = 'flex items-center gap-2 mono text-[10.5px] text-[#707070] dark:text-[#b4b4b4]';
+    statusBar.innerHTML = '<span class="h-1.5 w-1.5 rounded-full bg-[#3ecf8e]"></span>ONLINE · SYNCED';
+  }
+}
+
+function renderRows() {
+  if (!state.rows.length) {
+    rowList.innerHTML = '<li class="px-3.5 py-6 text-center text-[12px] text-[#707070] dark:text-[#b4b4b4]">No tasks yet. Add one to see the local write land.</li>';
+    return;
+  }
+  rowList.innerHTML = state.rows.map(r => `
+    <li class="flex items-center justify-between gap-3 px-3.5 py-2.5">
+      <span class="truncate text-[12.5px]">${r.label.replace(/</g,'&lt;')}</span>
+      <span class="shrink-0 mono text-[10px] uppercase tracking-wide ${r.pending ? 'text-[#b07800] dark:text-[#e0a800]' : 'text-[#707070] dark:text-[#b4b4b4]'}">
+        ${r.pending ? '0ms · queued' : '0ms · synced'}
+      </span>
+    </li>`).join('');
+}
+
+function renderDevice() {
+  modeLabel.textContent = state.offline ? 'ON' : 'OFF';
+  airplane.setAttribute('aria-checked', String(state.offline));
+  airplane.className = `relative h-6 w-11 shrink-0 rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00a8cc] dark:focus-visible:ring-[#00f2fe] ${
+    state.offline
+      ? 'bg-[#00a8cc] dark:bg-[#00f2fe] border-[#00a8cc] dark:border-[#00f2fe]'
+      : 'bg-[#f6f6f7] dark:bg-[#121212] border-[#e1e1e3] dark:border-[#2e2e2e]'}`;
+  knob.className = `absolute top-[3px] h-4 w-4 rounded-full transition-all duration-200 ${
+    state.offline ? 'left-[25px] bg-white dark:bg-[#0a0a0a]' : 'left-[3px] bg-[#a0a0a4] dark:bg-[#6a6a6a]'}`;
+  note.textContent = state.offline
+    ? 'Writes commit to OPFS immediately and hold in the outbox.'
+    : 'Local commit first, replication second — latency stays at 0 ms either way.';
+  renderStatus();
+  renderRows();
+}
+
+let syncTimer;
+airplane.addEventListener('click', () => {
+  state.offline = !state.offline;
+  clearTimeout(syncTimer);
+
+  if (!state.offline && state.rows.some(r => r.pending)) {
+    state.syncing = true;
+    renderDevice();
+    syncTimer = setTimeout(() => {
+      state.rows.forEach(r => (r.pending = false));
+      state.syncing = false;
+      renderDevice();
+    }, 1400);
+    return;
+  }
+  state.syncing = false;
+  renderDevice();
+});
+
+function addRow() {
+  const label = input.value.trim();
+  if (!label) return;
+  state.rows.push({ id: state.nextId++, label, pending: state.offline });
+  input.value = '';
+  renderStatus();
+  renderRows();
+  rowList.scrollTop = rowList.scrollHeight;
+}
+document.getElementById('addBtn').addEventListener('click', addRow);
+input.addEventListener('keydown', e => { if (e.key === 'Enter') addRow(); });
+
+/* ---------- matrix ---------- */
+const MATRIX = [
+  ['Database engine',     'Postgres 15 — server-resident only',   'Postgres 15 + embedded SQLite (WASM) on the client'],
+  ['Read / write latency','80–400 ms round trip, network-bound',  '0–2 ms local commit, sync happens after'],
+  ['Offline support',     'Reads fail; writes are dropped',       'Full read/write against OPFS, durable across reloads'],
+  ['Conflict resolution', 'Last write wins at the row level',     'Field-level CRDT merge with a manual override hook']
+];
+const B = 'border-[#e1e1e3] dark:border-[#2e2e2e]';
+const MUTED = 'text-[#707070] dark:text-[#b4b4b4]';
+document.getElementById('matrixBody').innerHTML = MATRIX.map(([axis, sb, vb]) => `
+  <div class="md:grid md:grid-cols-[1fr_1.3fr_1.3fr]">
+    <div class="px-5 pt-4 text-[13.5px] font-medium md:py-4">${axis}</div>
+    <div class="px-5 pt-2 text-[13.5px] ${MUTED} md:border-l ${B} md:py-4">
+      <span class="mr-2 mono text-[10.5px] uppercase md:hidden">Supabase</span>${sb}
+    </div>
+    <div class="px-5 pb-4 pt-2 text-[13.5px] md:border-l ${B} md:py-4">
+      <span class="mr-2 mono text-[10.5px] uppercase ${MUTED} md:hidden">VoltBase</span>${vb}
+    </div>
+  </div>`).join('');
+
+/* ---------- footer ---------- */
+const FOOTER = [
+  ['Product',    ['SQLite engine','Sync protocol','OPFS storage','Edge functions','Changelog']],
+  ['Developers', ['Documentation','SDK reference','Migration guide','Self-hosting','Status']],
+  ['Community',  ['GitHub','Discord','RFC process','Contributors','Blog']],
+  ['Company',    ['About','Careers','Security','Privacy','Terms']]
+];
+document.getElementById('footerCols').innerHTML = FOOTER.map(([title, links]) => `
+  <div>
+    <p class="text-[12.5px] font-medium">${title}</p>
+    <ul class="mt-4 space-y-2.5">
+      ${links.map(l => `<li><a href="#" class="text-[12.5px] ${MUTED} transition-opacity hover:opacity-70">${l}</a></li>`).join('')}
+    </ul>
+  </div>`).join('');
+
+renderDevice();
+</script>
+</body>
+</html>
